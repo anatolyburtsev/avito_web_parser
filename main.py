@@ -1,27 +1,38 @@
 # coding=utf-8
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from bs4 import BeautifulSoup
 import re
-import time
 import logging
 import smtplib
 from email.mime.text import MIMEText
-import schedule
 
 url_prefix = "https://www.avito.ru"
 logging.basicConfig(filename="sample.log", level=logging.DEBUG)
 
 
-def look_for_suitable_advs():
-    logging.debug("start initialization of webdriver")
-    url = "https://www.avito.ru/moskva?q=microsoft+sculpt+Ergonomic&i=1"
+def init_phantomjs_driver():
     driver = webdriver.PhantomJS()
     dcap = dict(DesiredCapabilities.PHANTOMJS)
     dcap['phantomjs.page.settings.userAgent'] = (
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 YaBrowser/17.10.0.2052 Yowser/2.5 Safari/537.36')
     driver = webdriver.PhantomJS(desired_capabilities=dcap, service_args=["--ignore-ssl-errors=true"])
     driver.implicitly_wait(20)
+    return driver
+
+
+def init_chrome_driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    driver = webdriver.Chrome(chrome_options=chrome_options)
+    return driver
+
+
+def look_for_suitable_advs():
+    logging.debug("start initialization of webdriver")
+    url = "https://www.avito.ru/moskva?q=microsoft+sculpt+Ergonomic&i=1"
+    driver = init_chrome_driver()
     logging.debug("webdriver started")
     driver.get(url)
     logging.debug("got web page")
@@ -78,16 +89,5 @@ class good(object):
         return self.title + str(self.price)
 
 
-# def job():
-#     goods = look_for_suitable_advs()
-#     print("Found {} ".format(len(goods)))
-#     notify_if_not_empty(goods)
-#
-#
-# schedule.every(10).seconds.do(job)
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
-
 goods = look_for_suitable_advs()
-print "FOUND SMTH USEFUL!!! " + "\n\n".join([url_prefix + x.link for x in looks_good])
+print "FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods])
