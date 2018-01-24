@@ -99,4 +99,4 @@ class good(object):
 
 
 goods = look_for_suitable_advs()
-print "FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods])
+if goods: print "FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods])
