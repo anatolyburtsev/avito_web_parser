@@ -7,6 +7,7 @@ import re
 import logging
 import smtplib
 from email.mime.text import MIMEText
+import requests
 
 url_prefix = "https://www.avito.ru"
 logging.basicConfig(filename="sample.log", level=logging.DEBUG)
@@ -29,14 +30,22 @@ def init_chrome_driver():
     return driver
 
 
-def look_for_suitable_advs():
-    logging.debug("start initialization of webdriver")
-    url = "https://www.avito.ru/moskva?q=microsoft+sculpt+Ergonomic&i=1"
+def get_page_by_webdriver(driver, url):
     driver = init_chrome_driver()
-    logging.debug("webdriver started")
     driver.get(url)
+    return driver.page_source
+
+
+def get_page_directly(url):
+    return requests.get(url).text
+
+
+def look_for_suitable_advs():
+    logging.debug("start initialization")
+    url = "https://www.avito.ru/moskva?q=microsoft+sculpt+Ergonomic&i=1"
+    source_page = get_page_directly(url)
     logging.debug("got web page")
-    s = BeautifulSoup(driver.page_source, "lxml")
+    s = BeautifulSoup(source_page, "lxml")
     good_blocks = s.findAll('div', 'item_table')
     digit_regex = re.compile(r'[^0-9]*')
     goods = []
