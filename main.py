@@ -10,7 +10,7 @@ from email.mime.text import MIMEText
 import requests
 
 url_prefix = "https://www.avito.ru"
-logging.basicConfig(filename="sample.log", level=logging.DEBUG)
+logging.basicConfig(filename="sample.log", level=logging.INFO)
 
 
 def init_phantomjs_driver():
@@ -59,7 +59,7 @@ def look_for_suitable_advs():
     logging.debug("blocks with good found. Start filtering")
     looks_good = []
     for g in goods:
-        if g.price > 13000:
+        if g.price > 3000:
             continue
         if u"ыш" in g.title and u"лавиатур" not in g.title:
             continue
