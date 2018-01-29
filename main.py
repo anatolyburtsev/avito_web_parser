@@ -10,8 +10,10 @@ from email.mime.text import MIMEText
 import requests
 
 url_prefix = "https://www.avito.ru"
+blacklist_file = "blacklist.file"
 logging.basicConfig(filename="sample.log", level=logging.INFO)
 
+no_digit_regex = re.compile(r'[^0-9]*')
 
 def init_phantomjs_driver():
     driver = webdriver.PhantomJS()
@@ -40,6 +42,30 @@ def get_page_directly(url):
     return requests.get(url).text
 
 
+def is_id_in_black_list(id):
+    id = no_digit_regex.sub("", str(id))
+    try:
+        f = open(blacklist_file, 'r')
+        for l in f.readlines():
+            l_cutted = no_digit_regex.sub("", l)
+            if l_cutted == id:
+                return True
+        f.close()
+        f = open(blacklist_file, 'a')
+    except IOError:
+        f = open(blacklist_file, 'w')
+    f.write(str(id) + "\n")
+    f.close()
+    return False
+
+
+
+def get_id_from_url(url):
+    id_regex = re.compile(r'_[0-9]*$')
+    tail = id_regex.findall(url).pop()
+    return int(tail[1:])
+
+
 def look_for_suitable_advs():
     logging.debug("start initialization")
     url = "https://www.avito.ru/moskva?q=microsoft+sculpt+Ergonomic&i=1"
@@ -47,14 +73,13 @@ def look_for_suitable_advs():
     logging.debug("got web page")
     s = BeautifulSoup(source_page, "lxml")
     good_blocks = s.findAll('div', 'item_table')
-    digit_regex = re.compile(r'[^0-9]*')
     goods = []
     for block in good_blocks:
         g = good()
         g.title = block.find("a", "item-description-title-link").text.lower()
         g.link = block.find("a", "item-description-title-link").attrs["href"]
         g.date = block.find("div", "date c-2").text.encode('utf-8', errors='replace')
-        g.price = int(digit_regex.sub("", block.find("div", "about").text.encode('utf-8', errors='ignore')))
+        g.price = int(no_digit_regex.sub("", block.find("div", "about").text.encode('utf-8', errors='ignore')))
         goods.append(g)
     logging.debug("blocks with good found. Start filtering")
     looks_good = []
@@ -64,6 +89,8 @@ def look_for_suitable_advs():
         if u"ыш" in g.title and u"лавиатур" not in g.title:
             continue
         if u'ulpt' not in g.title:
+            continue
+        if is_id_in_black_list(get_id_from_url(g.link)):
             continue
         looks_good.append(g)
     logging.debug("After filtering only {} rest".format(len(looks_good)))
@@ -98,5 +125,7 @@ class good(object):
         return self.title + str(self.price)
 
 
-goods = look_for_suitable_advs()
-if goods: print "FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods])
+# goods = look_for_suitable_advs()
+# if goods: print "FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods])
+print(is_id_in_black_list(123))
+# print(get_id_from_url("q2asdfasdfoiuqwrp209438_10938_123098"))
