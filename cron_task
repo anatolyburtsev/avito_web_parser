@@ -1,0 +1,2 @@
+MAILTO=HEREMYEMAIL@yandex.ru
+0,30 * * * * onotole cd /place/avito_checker && python main.py
