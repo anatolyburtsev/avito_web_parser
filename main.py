@@ -125,7 +125,5 @@ class good(object):
         return self.title + str(self.price)
 
 
-# goods = look_for_suitable_advs()
-# if goods: print "FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods])
-print(is_id_in_black_list(123))
-# print(get_id_from_url("q2asdfasdfoiuqwrp209438_10938_123098"))
+goods = look_for_suitable_advs()
+if goods: print "FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods])
