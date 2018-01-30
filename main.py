@@ -1,7 +1,4 @@
 # coding=utf-8
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from bs4 import BeautifulSoup
 import re
 import logging
@@ -14,28 +11,6 @@ blacklist_file = "blacklist.file"
 logging.basicConfig(filename="sample.log", level=logging.INFO)
 
 no_digit_regex = re.compile(r'[^0-9]*')
-
-def init_phantomjs_driver():
-    driver = webdriver.PhantomJS()
-    dcap = dict(DesiredCapabilities.PHANTOMJS)
-    dcap['phantomjs.page.settings.userAgent'] = (
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 YaBrowser/17.10.0.2052 Yowser/2.5 Safari/537.36')
-    driver = webdriver.PhantomJS(desired_capabilities=dcap, service_args=["--ignore-ssl-errors=true"])
-    driver.implicitly_wait(20)
-    return driver
-
-
-def init_chrome_driver():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    driver = webdriver.Chrome(chrome_options=chrome_options)
-    return driver
-
-
-def get_page_by_webdriver(driver, url):
-    driver = init_chrome_driver()
-    driver.get(url)
-    return driver.page_source
 
 
 def get_page_directly(url):
@@ -59,7 +34,6 @@ def is_id_in_black_list(id):
     return False
 
 
-
 def get_id_from_url(url):
     id_regex = re.compile(r'_[0-9]*$')
     tail = id_regex.findall(url).pop()
@@ -68,7 +42,7 @@ def get_id_from_url(url):
 
 def look_for_suitable_advs():
     logging.debug("start initialization")
-    url = "https://www.avito.ru/moskva?q=microsoft+sculpt+Ergonomic&i=1"
+    url = "https://www.avito.ru/moskva?q=microsoft+sculpt+ergonomic&i=1"
     source_page = get_page_directly(url)
     logging.debug("got web page")
     s = BeautifulSoup(source_page, "lxml")
@@ -79,7 +53,7 @@ def look_for_suitable_advs():
         g.title = block.find("a", "item-description-title-link").text.lower()
         g.link = block.find("a", "item-description-title-link").attrs["href"]
         g.date = block.find("div", "date c-2").text.encode('utf-8', errors='replace')
-        g.price = int(no_digit_regex.sub("", block.find("div", "about").text.encode('utf-8', errors='ignore')))
+        g.price = int(no_digit_regex.sub("", block.find("div", "about").text))
         goods.append(g)
     logging.debug("blocks with good found. Start filtering")
     looks_good = []
@@ -124,6 +98,6 @@ class good(object):
     def __str__(self):
         return self.title + str(self.price)
 
-
 goods = look_for_suitable_advs()
-if goods: print "FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods])
+if goods:
+    print("FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods]))
