@@ -62,7 +62,6 @@ def is_id_in_black_list(id):
 def get_id_from_url(url):
     id_regex = re.compile(r'_[0-9]*')
     url = url.split("?")[0]  # cut all get params
-    print(url)
     tail = id_regex.findall(url).pop()
     return int(tail[1:])
 
