@@ -63,6 +63,8 @@ def look_for_suitable_advs():
             continue
         if u"ыш" in g.title and u"лавиатур" not in g.title:
             continue
+        if u"ouse" in g.title and u"eyboard" not in g.title:
+            continue
         if u'ulpt' not in g.title:
             continue
         if is_id_in_black_list(get_id_from_url(g.link)):
