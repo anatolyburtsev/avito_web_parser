@@ -5,6 +5,7 @@ import logging
 import smtplib
 from email.mime.text import MIMEText
 import requests
+from avito_url import AvitoUrl
 
 url_prefix = "https://www.avito.ru"
 blacklist_file = "blacklist.file"
@@ -41,31 +42,27 @@ def get_id_from_url(url):
     return int(tail[1:])
 
 
-def look_for_suitable_advs():
+def look_for_suitable_advs(query, min_price, max_price):
     logging.debug("start initialization")
-    url = "https://www.avito.ru/moskva?q=microsoft+sculpt+ergonomic&i=1"
+    url = AvitoUrl(query).set_prices(min_price, max_price).get_url()
     source_page = get_page_directly(url)
     logging.debug("got web page")
     s = BeautifulSoup(source_page, "lxml")
     good_blocks = s.findAll('div', 'item_table')
     goods = []
     for block in good_blocks:
-        g = good()
+        g = Good()
         g.title = block.find("a", "item-description-title-link").text.lower()
         g.link = block.find("a", "item-description-title-link").attrs["href"]
-        g.date = block.find("div", "date c-2").text.encode('utf-8', errors='replace')
+        # g.date = block.find("div", "date c-2").text.encode('utf-8', errors='replace')
         g.price = int(no_digit_regex.sub("", block.find("div", "about").text))
         goods.append(g)
     logging.debug("blocks with good found. Start filtering")
     looks_good = []
     for g in goods:
-        if g.price > 3000:
+        if u"trackpad" not in g.title or u"2" not in g.title:
             continue
-        if u"ыш" in g.title and u"лавиатур" not in g.title:
-            continue
-        if u"ouse" in g.title and u"eyboard" not in g.title:
-            continue
-        if u'ulpt' not in g.title:
+        if u"mouse" in g.title:
             continue
         if is_id_in_black_list(get_id_from_url(g.link)):
             continue
@@ -92,7 +89,7 @@ def send_email(text, address):
     s.quit()
 
 
-class good(object):
+class Good(object):
     price = 0
     title = ""
     date = ""
@@ -101,6 +98,7 @@ class good(object):
     def __str__(self):
         return self.title + str(self.price)
 
-goods = look_for_suitable_advs()
+
+goods = look_for_suitable_advs("apple magic trackpad 2", 2500, 4500)
 if goods:
     print("FOUND SMTH USEFUL!!!\n\n " + "\n\n".join([url_prefix + x.link for x in goods]))
