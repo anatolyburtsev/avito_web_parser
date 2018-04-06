@@ -1,5 +1,7 @@
-from urllib.parse import urlencode
-
+try:
+    from urllib.parse import urlencode
+except:
+    from urllib import urlencode
 
 class AvitoUrl:
     _base_url = "https://www.avito.ru/moskva"
@@ -30,7 +32,7 @@ class AvitoUrl:
 
         params[self._search_query] = self._search_query_value
 
-        return self._base_url + "?" + urlencode(params, encoding="utf-8")
+        return self._base_url + "?" + urlencode(params)
 
 
 if __name__ == "__main__":
