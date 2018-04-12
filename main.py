@@ -55,7 +55,10 @@ def look_for_suitable_advs(query, min_price, max_price):
         g.title = block.find("a", "item-description-title-link").text.lower()
         g.link = block.find("a", "item-description-title-link").attrs["href"]
         # g.date = block.find("div", "date c-2").text.encode('utf-8', errors='replace')
-        g.price = int(no_digit_regex.sub("", block.find("div", "about").text))
+        try:
+            g.price = int(no_digit_regex.sub("", block.find("div", "about").text))
+        except:
+            raise Exception(block.text)
         goods.append(g)
     logging.debug("blocks with good found. Start filtering")
     looks_good = []
